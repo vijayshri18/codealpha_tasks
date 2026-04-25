@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>To-Do List App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 350px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .input-group {
+      display: flex;
+      margin-bottom: 15px;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px 0 0 5px;
+    }
+
+    button {
+      padding: 10px;
+      border: none;
+      background: #667eea;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #5a67d8;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #f1f1f1;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    li.completed {
+      text-decoration: line-through;
+      background: #d4edda;
+    }
+
+    .actions button {
+      margin-left: 5px;
+      font-size: 12px;
+      padding: 5px 8px;
+    }
+
+    .edit {
+      background: orange;
+    }
+
+    .delete {
+      background: red;
+    }
+
+    small {
+  font-size: 12px;
+}
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>To-Do List</h2>
+
+  <div class="input-group">
+  <input type="text" id="taskInput" placeholder="Enter a task">
+</div>
+
+<input type="date" id="taskDate">
+<input type="time" id="taskTime">
+
+<button onclick="addTask()">Add Task</button>
+
+  <ul id="taskList"></ul>
+</div>
+
+<script>
+  if ("Notification" in window) {
+  Notification.requestPermission();
+}
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+function saveTasks() {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function setReminder(task) {
+  if (!task.date || !task.time) return;
+
+  const taskDateTime = new Date(`${task.date}T${task.time}`);
+  const now = new Date();
+
+  const delay = taskDateTime - now;
+
+  if (delay > 0) {
+    setTimeout(() => {
+      if (Notification.permission === "granted") {
+        new Notification("⏰ Task Reminder", {
+          body: task.text,
+        });
+      } else {
+        alert("Reminder: " + task.text);
+      }
+    }, delay);
+  }
+}
+
+function renderTasks() {
+  const list = document.getElementById("taskList");
+  list.innerHTML = "";
+
+  tasks.forEach((task, index) => {
+    const li = document.createElement("li");
+    li.className = task.completed ? "completed" : "";
+
+    li.innerHTML = `
+      <div style="display:flex; flex-direction:column; align-items:flex-start;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" ${task.completed ? "checked" : ""} 
+                 onchange="toggleTask(${index})">
+          <span>${task.text}</span>
+        </div>
+
+        <small style="color:gray; margin-left:25px;">
+          📅 ${task.date || "No date"} ⏰ ${task.time || ""}
+        </small>
+      </div>
+
+      <div class="actions">
+        <button class="edit" onclick="editTask(${index})">Edit</button>
+        <button class="delete" onclick="deleteTask(${index})">Delete</button>
+      </div>
+    `;
+
+    list.appendChild(li);
+  });
+}
+
+function addTask() {
+  const text = document.getElementById("taskInput").value.trim();
+  const date = document.getElementById("taskDate").value;
+  const time = document.getElementById("taskTime").value;
+
+  if (text === "") {
+    alert("Please enter a task!");
+    return;
+  }
+
+  const task = {
+    text,
+    date,
+    time,
+    completed: false
+  };
+
+  tasks.push(task);
+
+  // 🔔 Set reminder
+  setReminder(task);
+
+  document.getElementById("taskInput").value = "";
+  document.getElementById("taskDate").value = "";
+  document.getElementById("taskTime").value = "";
+
+  saveTasks();
+  renderTasks();
+}
+
+function toggleTask(index) {
+  tasks[index].completed = !tasks[index].completed;
+  saveTasks();
+  renderTasks();
+}
+
+function deleteTask(index) {
+  tasks.splice(index, 1);
+  saveTasks();
+  renderTasks();
+}
+
+function editTask(index) {
+  const newText = prompt("Edit your task:", tasks[index].text);
+
+  if (newText !== null && newText.trim() !== "") {
+    tasks[index].text = newText.trim();
+    saveTasks();
+    renderTasks();
+  }
+}
+
+// Initial render
+renderTasks();
+tasks.forEach(task => {
+  setReminder(task);
+});
+</script>
+
+</body>
+</html>
