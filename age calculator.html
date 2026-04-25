@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Advanced Age Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      transition: 0.3s;
+    }
+
+    body.dark {
+      background: #121212;
+      color: white;
+    }
+
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 320px;
+      transition: 0.3s;
+    }
+
+    body.dark .container {
+      background: #1e1e1e;
+    }
+
+    h2 {
+      margin-bottom: 15px;
+    }
+
+    input {
+      padding: 10px;
+      margin: 10px 0;
+      width: 90%;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      border: none;
+      background: #4facfe;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      background: #00c6ff;
+    }
+
+    .result {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .toggle {
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #555;
+    }
+
+    body.dark .toggle {
+      color: #ccc;
+    }
+
+    @media (max-width: 400px) {
+      .container {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Age Calculator</h2>
+
+  <!-- Date Picker -->
+  <input type="date" id="dob">
+
+  <button onclick="calculateAge()">Calculate Age</button>
+
+  <div class="error" id="error"></div>
+  <div class="result" id="result"></div>
+  <div class="result" id="nextBirthday"></div>
+
+  <div class="toggle" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</div>
+</div>
+
+<script>
+function calculateAge() {
+  const dobInput = document.getElementById("dob").value;
+  const errorDiv = document.getElementById("error");
+  const resultDiv = document.getElementById("result");
+  const nextBirthdayDiv = document.getElementById("nextBirthday");
+
+  errorDiv.textContent = "";
+  resultDiv.textContent = "";
+  nextBirthdayDiv.textContent = "";
+
+  if (!dobInput) {
+    errorDiv.textContent = "Please select your date of birth!";
+    return;
+  }
+
+  const dob = new Date(dobInput);
+  const today = new Date();
+
+  if (dob > today) {
+    errorDiv.textContent = "Future date not allowed!";
+    return;
+  }
+
+  let years = today.getFullYear() - dob.getFullYear();
+  let months = today.getMonth() - dob.getMonth();
+  let days = today.getDate() - dob.getDate();
+
+  if (days < 0) {
+    months--;
+    const prevMonthDays = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+    days += prevMonthDays;
+  }
+
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  resultDiv.textContent = `You are ${years} years, ${months} months, and ${days} days old.`;
+
+  // 🎂 Next Birthday Calculation
+  let nextBirthday = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
+
+  if (nextBirthday < today) {
+    nextBirthday.setFullYear(today.getFullYear() + 1);
+  }
+
+  const diffTime = nextBirthday - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  nextBirthdayDiv.textContent = `🎂 Next birthday in ${diffDays} days`;
+}
+
+// 🌙 Dark Mode Toggle
+function toggleDarkMode() {
+  document.body.classList.toggle("dark");
+}
+</script>
+
+</body>
+</html>
